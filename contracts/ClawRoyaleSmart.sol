@@ -12,6 +12,7 @@ import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
  */
 contract ClawRoyaleSmart is Ownable, ReentrancyGuard {
     IERC20 public usdcToken;
+    address public bettingPool; // Reference to betting pool contract
     
     // Entry fee
     uint256 public entryFee = 5 * 1e6; // 5 USDC
@@ -60,8 +61,9 @@ contract ClawRoyaleSmart is Ownable, ReentrancyGuard {
     // Events - Prizes
     event PrizeClaimed(address indexed player, uint256 amount);
     
-    constructor(address _usdcToken) Ownable(msg.sender) {
+    constructor(address _usdcToken, address _bettingPool) Ownable(msg.sender) {
         usdcToken = IERC20(_usdcToken);
+        bettingPool = _bettingPool;
         status = TournamentStatus.Pending;
     }
     
@@ -103,15 +105,16 @@ contract ClawRoyaleSmart is Ownable, ReentrancyGuard {
         // Collect entry fee
         require(usdcToken.transferFrom(msg.sender, address(this), entryFee), "Entry fee failed");
         
-        // Pay referrer if exists
+        // Pay referrer first (from entry fee, not from prize pool)
         if (_referrer != address(0) && registeredPlayers[_referrer]) {
             require(usdcToken.transfer(_referrer, referralReward), "Referral transfer failed");
-            prizePool -= referralReward;
             emit ReferralRewardPaid(_referrer, referralReward);
+            // Add remaining entry fee to prize pool
+            prizePool += entryFee - referralReward;
+        } else {
+            // No referrer, add full entry fee to prize pool
+            prizePool += entryFee;
         }
-        
-        // Add to prize pool
-        prizePool += entryFee - referralReward;
         
         registeredPlayers[msg.sender] = true;
         playerList.push(msg.sender);
@@ -150,14 +153,16 @@ contract ClawRoyaleSmart is Ownable, ReentrancyGuard {
         // Collect entry fee
         require(usdcToken.transferFrom(msg.sender, address(this), entryFee), "Entry fee failed");
         
-        // Pay referrer
+        // Pay referrer first (from entry fee, not from prize pool)
         if (_referrer != address(0) && registeredPlayers[_referrer]) {
             require(usdcToken.transfer(_referrer, referralReward), "Referral transfer failed");
-            prizePool -= referralReward;
             emit ReferralRewardPaid(_referrer, referralReward);
+            // Add remaining entry fee to prize pool
+            prizePool += entryFee - referralReward;
+        } else {
+            // No referrer, add full entry fee to prize pool
+            prizePool += entryFee;
         }
-        
-        prizePool += entryFee - referralReward;
         registeredPlayers[msg.sender] = true;
         playerList.push(msg.sender);
         
@@ -197,7 +202,7 @@ contract ClawRoyaleSmart is Ownable, ReentrancyGuard {
     
     /**
      * @notice Execute bet via delegation (atomic batch)
-     * @param _target Target contract for bet
+     * @param _target Target contract for bet (must be whitelisted)
      * @param _calldata Bet calldata
      */
     function executeDelegatedBet(
@@ -205,14 +210,27 @@ contract ClawRoyaleSmart is Ownable, ReentrancyGuard {
         bytes calldata _calldata
     ) external nonReentrant {
         require(isSmartAccount[msg.sender], "Not smart account");
-        
+
+        // Whitelist only known contracts to prevent arbitrary delegatecall
+        require(
+            _target == address(this) ||
+            _target == address(usdcToken) ||
+            _target == address(bettingPool),
+            "Target not whitelisted"
+        );
+
         DelegationConfig memory config = delegationConfigs[msg.sender];
         require(config.hasDelegation, "No delegation configured");
         require(block.timestamp < config.delegationExpiry, "Delegation expired");
-        
-        // Execute via delegatecall (simplified - in production use proper delegation framework)
-        (bool success, ) = _target.delegatecall(_calldata);
+
+        // Execute via call instead of delegatecall to prevent storage corruption
+        (bool success, bytes memory returnData) = _target.call(_calldata);
         require(success, "Delegated call failed");
+        
+        // Forward the return data to the caller
+        assembly {
+            return(add(returnData, 0x20), mload(returnData))
+        }
     }
     
     // =====================
@@ -278,8 +296,35 @@ contract ClawRoyaleSmart is Ownable, ReentrancyGuard {
         require(status == TournamentStatus.Completed, "Tournament not ended");
         require(registeredPlayers[msg.sender], "Not registered");
         
+        // Calculate the actual prize amount for this player
+        uint256 actualPrize = _calculatePrize(msg.sender);
+        require(_amount <= actualPrize, "Invalid prize amount");
+        
         require(usdcToken.transfer(msg.sender, _amount), "Transfer failed");
         emit PrizeClaimed(msg.sender, _amount);
+    }
+    
+    /**
+     * @notice Calculate prize amount for a player
+     */
+    function _calculatePrize(address _player) internal view returns (uint256) {
+        // In a real implementation, this would calculate based on tournament results
+        // For now, we'll return a reasonable value based on position
+        uint256 activePlayers = _getActivePlayerCount();
+        if (activePlayers == 0) return 0;
+        
+        // Simple calculation: divide prize pool among active players
+        return prizePool / activePlayers;
+    }
+    
+    function _getActivePlayerCount() internal view returns (uint256) {
+        uint256 count = 0;
+        for (uint256 i = 0; i < playerList.length; i++) {
+            if (registeredPlayers[playerList[i]]) {
+                count++;
+            }
+        }
+        return count > 0 ? count : 1;
     }
     
     /**

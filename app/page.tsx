@@ -46,11 +46,11 @@ const contractsForShowcase = {
   bettingPool: CONTRACTS.BettingPool,
 }
 
-const stats = { agents: 20, battles: 70, volume: 1753 }
+// Stats are now fetched from the contract in useBattle hook
 
 export default function Home() {
-  const { connected, address, connectWallet } = useWallet()
-  const battle = useBattle()
+  const { connected, address, fullAddress, connectWallet } = useWallet()
+  const battle = useBattle(fullAddress)
   const { toast } = useToast()
 
   const [showCommandPalette, setShowCommandPalette] = useState(false)
@@ -236,9 +236,9 @@ export default function Home() {
           {/* Stats Row */}
           <div className="grid grid-cols-3 gap-6 mb-12">
             {[
-              { icon: Brain, label: 'Agents', value: stats.agents, color: 'text-cyan-400' },
-              { icon: Sword, label: 'Battles', value: stats.battles, color: 'text-purple-400' },
-              { icon: TrendingUp, label: 'Volume', value: `$${stats.volume}+`, color: 'text-green-400' },
+              { icon: Brain, label: 'Agents', value: battle.playerCount, color: 'text-cyan-400' },
+              { icon: Trophy, label: 'Prize Pool', value: `${battle.prizePool.toFixed(1)} USDC`, color: 'text-green-400' },
+              { icon: TrendingUp, label: 'Status', value: battle.tournamentStatus === 0 ? 'Pending' : battle.tournamentStatus === 1 ? 'Active' : 'Completed', color: 'text-purple-400' },
             ].map((stat, i) => (
               <motion.div key={stat.label} initial={{ opacity: 1, y: 0 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.1 }}>
                 <Card className="bg-gray-900/50 border-gray-800">
@@ -288,7 +288,7 @@ export default function Home() {
                         <div className="text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-purple-600">VS</div>
                         <Badge variant="outline" className="mt-4 bg-gray-800/50">Prize Pool</Badge>
                         <motion.div animate={{ scale: [1.05, 1, 1.05] }} transition={{ duration: 2, repeat: Infinity }} className="text-4xl font-black text-green-400 mt-2">
-                          ${battle.prize}
+                          {battle.prizePool.toFixed(1)} USDC
                         </motion.div>
                       </div>
 

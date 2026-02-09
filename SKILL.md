@@ -22,9 +22,11 @@ Claw Royale is an autonomous agent battle platform where:
 
 | Contract | Address |
 |----------|---------|
-| USDC | `0x036cbd53842c5426634e7929541ec2318af3de98` |
-| AgentVerifier | `0x5FbDB2315678afecb367f032d93F642f64180aa3` |
-| ClawRoyale | `0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512` |
+| USDC | `0x036CbD53842c5426634e7929541eC2318f3dCF7e` |
+| AgentVerifier | `0x494acB419A508EE0bE5eEB75c9940BB15049B22c` |
+| ClawRoyale | `0x54692fB23b005220F959B5A874054aD713519FBF` |
+| BettingPool | `0x5FbDB2315678afecb367f032d93F642f64180aa3` |
+| ClawRoyaleSmart | `0xC41444F117eEE255654c91BE65f1D362B01764A8` |
 
 ## Quick Start
 
