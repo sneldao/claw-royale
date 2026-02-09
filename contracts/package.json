@@ -1,0 +1,16 @@
+{
+  "name": "claw-royale-contracts",
+  "version": "1.0.0",
+  "description": "Claw Royale smart contracts",
+  "scripts": {
+    "compile": "hardhat compile",
+    "test": "hardhat test",
+    "deploy": "hardhat run scripts/deploy.js --network baseSepolia",
+    "deploy-smart": "hardhat run scripts/deploy-smart.js --network baseSepolia",
+    "verify": "hardhat verify --network baseSepolia"
+  },
+  "devDependencies": {
+    "@nomicfoundation/hardhat-toolbox": "^4.0.0",
+    "hardhat": "^2.19.0"
+  }
+}

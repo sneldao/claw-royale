@@ -1,0 +1,20 @@
+#!/bin/bash
+# 🚨 Pre-commit hook: Check for private keys
+
+echo "🔍 Scanning for private keys..."
+
+# Check for Ethereum/Solana private key patterns
+if git diff --cached --name-only | xargs grep -l "0x[a-fA-F0-9]\{64\}" 2>/dev/null; then
+  echo "🚨 ERROR: Ethereum private key pattern detected in staged files!"
+  echo "Please use environment variables (process.env) instead."
+  exit 1
+fi
+
+if git diff --cached --name-only | xargs grep -l "[0-9]\{88,\}" 2>/dev/null; then
+  echo "🚨 ERROR: Solana private key pattern detected in staged files!"
+  echo "Please use environment variables instead."
+  exit 1
+fi
+
+echo "✅ No private keys detected"
+exit 0

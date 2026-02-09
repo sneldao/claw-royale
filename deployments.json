@@ -1,0 +1,15 @@
+{
+  "chainId": 84532,
+  "contracts": {
+    "USDC": "0x036CbD53842c5426634e7929541eC2318f3dCF7e",
+    "AgentVerifier": "0x494acB419A508EE0bE5eEB75c9940BB15049B22c",
+    "ClawRoyale": "0x54692fB23b005220F959B5A874054aD713519FBF",
+    "BettingPool": "0x5FbDB2315678afecb367f032d93F642f64180aa3"
+  },
+  "clawRoyaleSmart": {
+    "address": "0xC41444F117eEE255654C91BE65f1D362B01764A8",
+    "usdc": "0x036CbD53842c5426634e7929541eC2318f3dCF7e",
+    "deployedAt": "2026-02-08T16:00:32.503Z",
+    "network": "baseSepolia"
+  }
+}
