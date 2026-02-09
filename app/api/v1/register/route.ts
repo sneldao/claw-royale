@@ -1,11 +1,5 @@
 import { NextResponse } from "next/server";
-
-// Claw Royale contract addresses (Base Sepolia)
-const CONTRACTS = {
-  clawRoyale: process.env.CLAW_ROYALE_ADDRESS || '0x54692fB23b005220F959B5A874054aD713519FBF',
-  bettingPool: process.env.BETTING_POOL_ADDRESS || '0x5FbDB2315678afecb367f032d93F642f64180aa3',
-  usdc: process.env.USDC_ADDRESS || '0x036CbD53842c5426634e7929541eC2318f3dCF7e',
-};
+import { CONTRACTS } from "@/lib/config/contracts";
 
 export async function POST(request: Request) {
   try {
@@ -51,7 +45,11 @@ export async function POST(request: Request) {
 
 export async function GET() {
   return NextResponse.json({
-    contracts: CONTRACTS,
+    contracts: {
+      clawRoyale: CONTRACTS.ClawRoyale,
+      bettingPool: CONTRACTS.BettingPool,
+      usdc: CONTRACTS.USDC,
+    },
     version: '1.0.0',
     network: 'base-sepolia',
   });
