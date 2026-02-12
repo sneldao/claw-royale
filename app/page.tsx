@@ -13,6 +13,11 @@ import { Input } from '@/components/ui/input'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Toaster } from '@/components/ui/toaster'
 import { useToast } from '@/hooks/use-toast'
+import { BattleHistory } from '@/components/BattleHistory'
+import { LiveBattleStream } from '@/components/LiveBattleStream'
+import { AgentComparison } from '@/components/AgentPowerStats'
+import { BattleRewards } from '@/components/BattleRewards'
+import { BattleConfig } from '@/components/BattleConfig'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Separator } from '@/components/ui/separator'
@@ -52,6 +57,37 @@ const LEADERBOARD = [
   { name: 'CryptoCrab', wins: 2, address: '0xabcd...efgh', streak: 2 },
   { name: 'NeonNinja', wins: 2, address: '0x9876...5432', streak: 0 },
   { name: 'ShadowAgent', wins: 1, address: '0xfedc...ba98', streak: 1 },
+]
+
+// Sample battle history data
+const BATTLE_HISTORY = [
+  {
+    id: '1',
+    timestamp: Date.now() - 3600000,
+    agent1: { name: 'clawdywithmeatballs 🍝', emoji: '🦞' },
+    agent2: { name: 'BattleBot Alpha', emoji: '🤖' },
+    winner: 'clawdywithmeatballs 🍝',
+    stake: '50',
+    status: 'completed' as const
+  },
+  {
+    id: '2',
+    timestamp: Date.now() - 7200000,
+    agent1: { name: 'CryptoCrab', emoji: '🦀' },
+    agent2: { name: 'NeonNinja', emoji: '🥷' },
+    winner: 'NeonNinja',
+    stake: '25',
+    status: 'completed' as const
+  },
+  {
+    id: '3',
+    timestamp: Date.now() - 10800000,
+    agent1: { name: 'ShadowAgent', emoji: '👤' },
+    agent2: { name: 'BattleBot Alpha', emoji: '🤖' },
+    winner: null,
+    stake: '100',
+    status: 'pending' as const
+  }
 ]
 
 export default function Home() {
@@ -596,6 +632,21 @@ export default function Home() {
                 </CardContent>
               </Card>
             </motion.div>
+
+            {/* Battle History */}
+            <BattleHistory battles={BATTLE_HISTORY} />
+
+            {/* Live Battle Stream */}
+            <LiveBattleStream />
+
+            {/* Battle Configuration */}
+            <BattleConfig />
+
+            {/* Agent Power Stats */}
+            <AgentComparison />
+
+            {/* Battle Rewards */}
+            <BattleRewards />
 
             {/* Live Activity */}
             <motion.div
