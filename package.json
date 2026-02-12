@@ -51,6 +51,7 @@
     "tailwindcss": "^3.4.0",
     "typescript": "^5.0.0"
   },
+<<<<<<< HEAD
   "scripts": {
     "dev": "next dev",
     "build": "next build",
@@ -58,6 +59,8 @@
     "lint": "next lint",
     "prepare": "husky"
   },
+=======
+>>>>>>> 203af8a4292415d7067102c1d14a6eae4fb3cbed
   "keywords": [
     "claw-royale",
     "agent-battle",

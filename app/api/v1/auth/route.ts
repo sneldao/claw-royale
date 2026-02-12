@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { GET, POST } from "../../../../lib/fishnet";
+import { GET, POST } from "@/lib/fishnet";
 
 // Discovery endpoint (GET)
 export { GET };

@@ -17,6 +17,7 @@ contract BettingPool is Ownable, ReentrancyGuard {
         uint256 amount;
         uint256 matchId;
         bool claimed;
+        bool forPlayer1; // Track which side the bettor bet on
     }
     
     mapping(uint256 => uint256) public totalPoolP1;
@@ -52,7 +53,8 @@ contract BettingPool is Ownable, ReentrancyGuard {
             player: msg.sender,
             amount: _amount,
             matchId: _matchId,
-            claimed: false
+            claimed: false,
+            forPlayer1: _forPlayer1
         });
         
         emit BetPlaced(_matchId, msg.sender, _amount, _forPlayer1);
@@ -81,11 +83,11 @@ contract BettingPool is Ownable, ReentrancyGuard {
         uint256 totalPool = totalPoolP1[_matchId] + totalPoolP2[_matchId];
         uint256 payout;
         
-        // Determine if bettor won
-        bool won;
-        if (matchResult == 0 && playerBet.amount == totalPoolP1[_matchId] && totalPoolP1[_matchId] > 0) {
+        // Determine if bettor won based on which side they bet on and the result
+        bool won = false;
+        if (matchResult == 0 && playerBet.forPlayer1 && totalPoolP1[_matchId] > 0) {
             won = true;
-        } else if (matchResult == 1 && playerBet.amount == totalPoolP2[_matchId] && totalPoolP2[_matchId] > 0) {
+        } else if (matchResult == 1 && !playerBet.forPlayer1 && totalPoolP2[_matchId] > 0) {
             won = true;
         }
         

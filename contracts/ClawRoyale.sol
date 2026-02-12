@@ -128,16 +128,17 @@ contract ClawRoyale is Ownable, ReentrancyGuard {
         // Record payment as used
         x402Payments[_paymentId] = false; // Mark as used
         
-        // Pay referrer if exists
+        // Pay referrer first (from entry fee, not from prize pool)
         if (_referrer != address(0) && players[_referrer].registered) {
             require(usdcToken.transfer(_referrer, referralReward), "Referral transfer failed");
             players[msg.sender].referrer = _referrer;
             emit ReferralRewardPaid(_referrer, referralReward);
-            prizePool -= referralReward;
+            // Add remaining entry fee to prize pool
+            prizePool += entryFee - referralReward;
+        } else {
+            // No referrer, add full entry fee to prize pool
+            prizePool += entryFee;
         }
-        
-        // Add to prize pool
-        prizePool += entryFee - referralReward;
         
         players[msg.sender] = Player({
             agentId: _agentId,
@@ -166,16 +167,17 @@ contract ClawRoyale is Ownable, ReentrancyGuard {
         // Collect entry fee
         require(usdcToken.transferFrom(msg.sender, address(this), entryFee), "Entry fee failed");
         
-        // Pay referrer if exists
+        // Pay referrer first (from entry fee, not from prize pool)
         if (_referrer != address(0) && players[_referrer].registered) {
             require(usdcToken.transfer(_referrer, referralReward), "Referral transfer failed");
             players[msg.sender].referrer = _referrer;
             emit ReferralRewardPaid(_referrer, referralReward);
-            prizePool -= referralReward;
+            // Add remaining entry fee to prize pool
+            prizePool += entryFee - referralReward;
+        } else {
+            // No referrer, add full entry fee to prize pool
+            prizePool += entryFee;
         }
-        
-        // Add to prize pool
-        prizePool += entryFee - referralReward;
         
         players[msg.sender] = Player({
             agentId: _agentId,
@@ -290,15 +292,20 @@ contract ClawRoyale is Ownable, ReentrancyGuard {
     
     function _calculatePayout(address _player) internal view returns (uint256) {
         uint256 activeCount = _countActivePlayers();
+        if (activeCount == 0) return 0;
         
         // First place: 50%, Second: 30%, Third: 20%
         // Simplified: equal split among non-eliminated
         uint256 basePayout = prizePool / activeCount;
         
-        // Bonus for winners based on score
+        // Bonus for winners based on score (capped to ensure we don't exceed prize pool)
         uint256 scoreBonus = players[_player].score * 1e4; // 0.0001 USDC per score point
         
-        return basePayout + scoreBonus;
+        // Ensure total payout doesn't exceed prize pool / activeCount to prevent draining
+        uint256 maxPayout = prizePool / activeCount;
+        uint256 totalPayout = basePayout + scoreBonus;
+        
+        return totalPayout > maxPayout ? maxPayout : totalPayout;
     }
     
     function _countActivePlayers() internal view returns (uint256) {
